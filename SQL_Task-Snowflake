@@ -132,5 +132,20 @@ SELECT
 FROM
     RateChanges;
 
+
+/* Few optimization decisions:
+a) Reduced Time Window for Active Rates: 
+By focusing on the last 60 seconds for active rates, we minimize the amount of data being processed in each run, 
+which is crucial for a task running every minute.
+b) Yesterday's Rates: 
+The query limits the scan to a 2-hour window around yesterday's 5 PM New York time to find the closest rate. 
+This reduces the data scanned and improves performance.
+c) Window Functions: 
+The ROW_NUMBER() window function efficiently identifies the closest rate to yesterday's 5 PM for each currency pair, 
+avoiding the need to scan and compare all records from the previous day.
+d) INNER JOINs for Relevant Data: 
+The query uses INNER JOINs to ensure that only currency pairs with both a recent active rate and a valid rate 
+from the previous day are included, thus focusing on the most relevant data.
+*/
 --------------------------------------------------------------------------------------------------------------------------
 
