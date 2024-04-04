@@ -66,4 +66,21 @@ Step 7: Create a task to schedule the job.
 Step 8: Start the task.
 
 ALTER TASK Computing_Hourly_Changes RESUME;
+---------------------------------------------------------------------------------------------------------------------------
+Requirement B:
+Assuming 300 currency couples instead of 5, and assuming the job needs to run every 1 minute,
+would you change anything about the implementation of your solution? Could you provide the
+updated solution as well?
+
+Solution: 
+Scaling the solution to handle 300 currency pairs and updating the frequency to every minute introduces additional considerations but the core logic of the solution remains the same.
+We will have to tweek some parameters for performance and efficiency. 
+ The updated task can be found in the code file  "SQL_Task-Snowflake".
+
+ In the updated task: 
+ a) We ensure that the currency_rates table is properly indexed, especially on ccy_couple and event_time to speed up queries.
+ b) We will also adjust the Snowflake warehouse size to handle the increase load.
+c) The CRON schedule in the task creation will need to be updated to reflect the new frequency of every minute.
+d)Eventually the table can also be partitioned and clustered for optimization.
+--------------------------------------------------------------------------------------------------------------------------
 
