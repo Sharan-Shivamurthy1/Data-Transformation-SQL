@@ -1,0 +1,68 @@
+import snowflake.connector
+from datetime import datetime
+import random
+import time
+
+# Snowflake connection details
+USER = 'our_user name'
+PASSWORD = 'our_password'
+ACCOUNT = 'our_account'
+WAREHOUSE = 'our_warehouse name'
+DATABASE = 'our_database name'
+SCHEMA = 'our_schema name'
+
+# Function to simulate real-time FX rates data generation
+def generate_fx_rate():
+    currency_pairs = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD']
+    while True:
+        ccy_pair = random.choice(currency_pairs)
+        rate = round(random.uniform(0.8, 1.5), 5)
+        timestamp = int(time.time() * 1000)
+        yield ccy_pair, rate, timestamp
+        time.sleep(random.uniform(0.1, 0.5))  # Simulate data stream with random intervals
+
+# Function to insert data into Snowflake
+def insert_into_snowflake(conn, ccy_pair, rate, timestamp):
+    cs = conn.cursor()
+    try:
+        cs.execute(
+            "INSERT INTO rates_sample (ccy_pair, rate, event_time) VALUES (%s, %s, %s)",
+            (ccy_pair, rate, timestamp)
+        )
+    except Exception as e:
+        print(f"Error inserting into Snowflake: {e}")
+    finally:
+        cs.close()
+
+# Main function to process and load data in real-time
+def stream_to_snowflake():
+    # Establish Snowflake connection
+    conn = snowflake.connector.connect(
+        user=USER,
+        password=PASSWORD,
+        account=ACCOUNT,
+        warehouse=WAREHOUSE,
+        database=DATABASE,
+        schema=SCHEMA
+    )
+
+    # Create the table if it doesn't exist
+    conn.cursor().execute("""
+        CREATE TABLE IF NOT EXISTS rates_sample (
+            ccy_pair VARCHAR,
+            rate FLOAT,
+            event_time BIGINT
+        )
+    """)
+
+    # Process and load data as it is generated
+    for ccy_pair, rate, timestamp in generate_fx_rate():
+        insert_into_snowflake(conn, ccy_pair, rate, timestamp)
+        print(f"Inserted: {ccy_pair} rate at {datetime.fromtimestamp(timestamp / 1000)} with rate {rate}")
+        time.sleep(1)  # adjust based on desired throughput
+
+    # Close the connection
+    conn.close()
+
+if __name__ == "__main__":
+    stream_to_snowflake()
