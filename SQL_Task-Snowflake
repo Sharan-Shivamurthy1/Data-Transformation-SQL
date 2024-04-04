@@ -1,3 +1,5 @@
+/* Snowflake task creation for initial Requirement*/
+
 CREATE OR REPLACE TASK Computing_Hourly_Changes
 WAREHOUSE = <OurWarehouse>
 SCHEDULE = 'USING CRON 0 * * * * UTC'
@@ -75,3 +77,60 @@ a) "Current" Time Definition: For the purpose of filtering active rates, the "cu
 b) Time Zone Handling: Epoch time will be converted to New York time to accurately determine the rates at 5 PM the previous day.
 c) Change Calculation: The change will be calculated as ((current_rate - previous_rate) / previous_rate) * 100 and formatted as a percentage.
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--------------------------------------------SQL Task in snowflake for Requirement B-------------------------------------------------------------
+/* Assuming a task that runs every minute, the focus is on the last minute's data for active rates
+ and comparing with the closest rate to yesterday's 5 PM for each currency couple.*/
+
+CREATE OR REPLACE TASK Computing_Minutely_Changes
+WAREHOUSE = '<OurWarehouse>'
+SCHEDULE = 'USING CRON * * * * * UTC' -- Runs every minute
+AS
+WITH LatestRates AS (
+    SELECT
+        ccy_couple,
+        MAX(TO_TIMESTAMP_NTZ(event_time/1000)) AS latest_time -- Convert epoch milliseconds to timestamp
+    FROM
+        currency_rates
+    WHERE
+        -- Focusing on the last 60 seconds to identify active rates
+        TO_TIMESTAMP_NTZ(event_time/1000) > CURRENT_TIMESTAMP() - INTERVAL '60 SECONDS'
+    GROUP BY
+        ccy_couple
+),
+YesterdayClosestRates AS (
+    SELECT
+        ccy_couple,
+        rate AS yesterday_rate,
+        -- Rank rates based on their closeness to yesterday's 5 PM New York time
+        ROW_NUMBER() OVER(PARTITION BY ccy_couple ORDER BY ABS(DATEDIFF('second', TO_TIMESTAMP_NTZ(event_time/1000), CONVERT_TIMEZONE('UTC', 'America/New_York', DATEADD('day', -1, DATE_TRUNC('day', CURRENT_TIMESTAMP())) + INTERVAL '17 hours')))) AS rn
+    FROM
+        currency_rates
+    WHERE
+        -- Restricting the timeframe to a 2-hour window around yesterday's 5 PM to limit the data scanned
+        TO_TIMESTAMP_NTZ(event_time/1000) BETWEEN CONVERT_TIMEZONE('UTC', 'America/New_York', DATEADD('day', -1, DATE_TRUNC('day', CURRENT_TIMESTAMP())) + INTERVAL '16 hours')
+        AND CONVERT_TIMEZONE('UTC', 'America/New_York', DATEADD('day', -1, DATE_TRUNC('day', CURRENT_TIMESTAMP())) + INTERVAL '18 hours')
+),
+RateChanges AS (
+    SELECT
+        lr.ccy_couple,
+        cr.rate AS current_rate,
+        ycr.yesterday_rate,
+        -- Calculating the percentage change
+        (cr.rate - ycr.yesterday_rate) / ycr.yesterday_rate * 100 AS percentage_change
+    FROM
+        LatestRates lr
+    INNER JOIN
+        currency_rates cr ON lr.ccy_couple = cr.ccy_couple AND TO_TIMESTAMP_NTZ(cr.event_time/1000) = lr.latest_time
+    INNER JOIN
+        YesterdayClosestRates ycr ON lr.ccy_couple = ycr.ccy_couple AND ycr.rn = 1
+)
+SELECT
+    ccy_couple,
+    current_rate,
+    ROUND(percentage_change, 2) AS change
+FROM
+    RateChanges;
+
+--------------------------------------------------------------------------------------------------------------------------
+
