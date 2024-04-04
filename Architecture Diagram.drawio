@@ -1,0 +1,75 @@
+<mxfile host="Electron" modified="2024-04-04T20:10:20.007Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.1.0 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="wtVpwd1yh8gI4ZPlfZgr" version="24.1.0" type="device" pages="2">
+  <diagram name="Steps" id="PmKoecJNAGgryaWZlttT">
+    <mxGraphModel dx="864" dy="508" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Ms-es6E2y1fagcPtXd-6-1" value="&lt;b&gt;Identify the latest rate by filtering out rates older than 30 seconds from the current time.&lt;/b&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="168" y="31" width="420" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Ms-es6E2y1fagcPtXd-6-2" value="&lt;b&gt;For each active currency pair, we calculate the change in the rate compared to the rate at 5PM New York time the previous day.&lt;/b&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="184" y="150" width="400" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Ms-es6E2y1fagcPtXd-6-3" value="&lt;b&gt;We then need to format the data for each active currency pair into the specified ccy_couple, rate, change format.&lt;/b&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="178" y="282" width="400" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Ms-es6E2y1fagcPtXd-6-13" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;strokeColor=#000000;" edge="1" parent="1" source="Ms-es6E2y1fagcPtXd-6-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="387" y="283" as="sourcePoint" />
+            <mxPoint x="378" y="146" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ms-es6E2y1fagcPtXd-6-14" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.475;exitY=1.063;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.49;entryY=-0.075;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=#000000;" edge="1" parent="1" source="Ms-es6E2y1fagcPtXd-6-2" target="Ms-es6E2y1fagcPtXd-6-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="387" y="283" as="sourcePoint" />
+            <mxPoint x="437" y="233" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="374" y="250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="9Gc_x4Kdt_KTp9VLY3Tp" name="Basic Archtecture">
+    <mxGraphModel dx="864" dy="508" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Ab69ESEwfsx8hINtSf06-2" value="&lt;b&gt;Data Source&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="76" y="95" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Ab69ESEwfsx8hINtSf06-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Ab69ESEwfsx8hINtSf06-3" target="Ab69ESEwfsx8hINtSf06-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Ab69ESEwfsx8hINtSf06-3" value="&lt;b&gt;Streaming Data&lt;/b&gt;&lt;div&gt;&lt;b&gt;(Processed uisng python)&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="233" y="93" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Ab69ESEwfsx8hINtSf06-4" value="&lt;b&gt;Snowflake&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="382" y="90" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Ab69ESEwfsx8hINtSf06-5" value="&lt;b&gt;Table: rates_sample&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="529" y="90" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Ab69ESEwfsx8hINtSf06-10" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#000000;" edge="1" parent="1" source="Ab69ESEwfsx8hINtSf06-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="387" y="283" as="sourcePoint" />
+            <mxPoint x="375" y="123" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ab69ESEwfsx8hINtSf06-11" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#000000;" edge="1" parent="1" source="Ab69ESEwfsx8hINtSf06-4" target="Ab69ESEwfsx8hINtSf06-5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="387" y="283" as="sourcePoint" />
+            <mxPoint x="437" y="233" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ab69ESEwfsx8hINtSf06-13" value="" style="endArrow=classic;html=1;rounded=0;exitX=1.017;exitY=0.4;exitDx=0;exitDy=0;exitPerimeter=0;strokeColor=#000000;" edge="1" parent="1" source="Ab69ESEwfsx8hINtSf06-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="387" y="283" as="sourcePoint" />
+            <mxPoint x="231" y="119" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
