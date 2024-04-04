@@ -83,4 +83,12 @@ We will have to tweek some parameters for performance and efficiency.
 c) The CRON schedule in the task creation will need to be updated to reflect the new frequency of every minute.
 d)Eventually the table can also be partitioned and clustered for optimization.
 --------------------------------------------------------------------------------------------------------------------------
+Requirement C:
+Instead of batch processing, we would like to change the process into a streaming one. Can you
+create a solution in a language of your choice which would display the data in real time?
 
+Solution:
+
+    The data streaming can be handled using python and load the data to Snowflake. The basic ETL python script can be found
+    in the code file "ETL_Script"
+---------------------------------------------------------------------------------------------------------------------------
