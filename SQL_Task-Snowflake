@@ -1,0 +1,77 @@
+CREATE OR REPLACE TASK Computing_Hourly_Changes
+WAREHOUSE = <OurWarehouse>
+SCHEDULE = 'USING CRON 0 * * * * UTC'
+AS
+WITH LatestRates AS (
+    SELECT
+        ccy_couple,
+        MAX(TO_TIMESTAMP_NTZ(event_time/1000)) AS latest_time -- Converting epoch milliseconds to timestamp
+    FROM
+        currency_rates
+    WHERE
+        TO_TIMESTAMP_NTZ(event_time/1000) > CURRENT_TIMESTAMP() - INTERVAL '30 SECONDS'
+    GROUP BY
+        ccy_couple
+),
+ActiveRates AS (
+    SELECT
+        r.ccy_couple,
+        r.rate,
+        r.event_time
+    FROM
+        currency_rates r
+    JOIN LatestRates lr ON
+        r.ccy_couple = lr.ccy_couple AND
+        TO_TIMESTAMP_NTZ(r.event_time/1000) = lr.latest_time
+),
+YesterdayRates AS (
+    SELECT
+        ccy_couple,
+        rate AS yesterday_rate,
+        ABS(DATEDIFF('second', TO_TIMESTAMP_NTZ(event_time/1000), CONVERT_TIMEZONE('UTC', 'America/New_York', DATEADD('day', -1, DATE_TRUNC('day', CURRENT_TIMESTAMP())) + INTERVAL '17 hours'))) AS time_diff
+    FROM
+        currency_rates
+    WHERE
+        TO_TIMESTAMP_NTZ(event_time/1000) BETWEEN CONVERT_TIMEZONE('UTC', 'America/New_York', DATEADD('day', -1, DATE_TRUNC('day', CURRENT_TIMESTAMP())) + INTERVAL '16 hours')
+        AND CONVERT_TIMEZONE('UTC', 'America/New_York', DATEADD('day', -1, DATE_TRUNC('day', CURRENT_TIMESTAMP())) + INTERVAL '18 hours')
+),
+ClosestYesterdayRates AS (
+    SELECT
+        ccy_couple,
+        yesterday_rate
+    FROM
+        YesterdayRates
+    QUALIFY ROW_NUMBER() OVER(PARTITION BY ccy_couple ORDER BY time_diff ASC) = 1
+),
+RateChanges AS (
+    SELECT
+        ar.ccy_couple,
+        ar.rate AS current_rate,
+        cyr.yesterday_rate,
+        ((ar.rate - cyr.yesterday_rate) / cyr.yesterday_rate) * 100 AS percentage_change
+    FROM
+        ActiveRates ar
+    LEFT JOIN ClosestYesterdayRates cyr ON
+        ar.ccy_couple = cyr.ccy_couple
+)
+SELECT
+    ccy_couple,
+    current_rate,
+    ROUND(percentage_change, 2) AS change
+FROM
+    RateChanges;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/* Comments
+
+The SCHEDULE = 'USING CRON 0 * * * * UTC' portion sets the schedule using CRON syntax. 
+In our case, 0 * * * * UTC means the task will run at the top of every hour, every day, according to the UTC timezone. 
+We can adjust the CRON expression based on our scheduling needs.
+
+ */
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Decisions and Assumptions:
+a) "Current" Time Definition: For the purpose of filtering active rates, the "current" time needs to be defined. This could be the latest event_time found in the data or a specific time provided for the calculation.
+b) Time Zone Handling: Epoch time will be converted to New York time to accurately determine the rates at 5 PM the previous day.
+c) Change Calculation: The change will be calculated as ((current_rate - previous_rate) / previous_rate) * 100 and formatted as a percentage.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
